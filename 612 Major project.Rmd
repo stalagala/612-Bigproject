@@ -1,0 +1,113 @@
+---
+title: "612 Major project"
+author: "Sanduni Talagala"
+date: "March 12, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Method 1: Anova - glm
+```{r}
+flyData <-read.csv("FlyaverageOne.csv")
+```
+
+```{r}
+FemaleColour<-flyData$Colour.F
+FemaleSize<-flyData$F.size
+MaleSize<-flyData$M.size
+bwOffspringAVG<-flyData$BW
+wtOffspringAVG<-flyData$WT
+bwOffspringSUM<-flyData$sum.of.BW
+wtOffspringSUM<-flyData$sum.of.WT
+prop<-flyData$propWT
+sizeMatch<-flyData$Match
+```
+
+*The model and GLM*
+```{r}
+library(car)
+#Here I did a quasibimonial instead of bionomial to avoid overdispersion problem. Read the word document for more.
+model1<-glm(cbind(wtOffspringSUM,bwOffspringSUM)~FemaleSize*MaleSize, quasibinomial)
+summary(model1)
+
+anovamodel<-Anova(model1)
+anovamodel
+
+#The plot is also available in word document. This just visualizes the effects. 
+library(effects)
+plot(allEffects(model1))
+```
+
+
+*GLM assumptions*
+```{r}
+library(car)
+residualPlots(model1)
+outlierTest(model1)
+influenceIndexPlot(model1, id.n=3)
+influencePlot(model1)
+vif(model1)
+
+# overall.
+plot(model1)
+
+```
+
+
+
+##Method 2: Mann-Whitney
+```{r}
+flydatatoplot<-read.csv("forttest2.csv")
+flydata2<-read.csv("propfortest2.csv")
+proportion<-flydata2$propWT
+matchorno<-flydata2$Type
+```
+
+*Run test and plots*
+```{r}
+boxplot(flydatatoplot$Matched,flydatatoplot$Unmatched, xlab = "matched or unmatched pairs", ylab="proportion of wt (red-eyed) offspring", main="boxplot of matched and unmatched pairs' offspring", names=c("matched", "unmatched"), col=c('red','blue'))
+
+
+wilcox.test(proportion~matchorno)
+```
+
+
+*Why I had to run mann-whitney instead of a 2 sample t-test. The 2 groups are not normally distributed. 
+```{r}
+library(car)
+shapiro.test(flydatatoplot$Matched)
+shapiro.test(flydatatoplot$Unmatched)
+
+leveneTest(proportion~matchorno)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
